@@ -2,7 +2,6 @@ import {
   time,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { BigNumberish } from 'ethers'
@@ -119,6 +118,23 @@ describe("SavingContract allow users to", function () {
     expect(savedBalance.goal).to.equal(savingGoal);
   });
 
+  it('add to an existing Saving', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    const depositedAmount = tokensAmount(500);
+    const addedAmount = tokensAmount(100);
+    await tokenContract.approve(savingContractAddress, depositedAmount);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+
+    // Act
+    await tokenContract.approve(savingContractAddress, addedAmount);
+    await savingContract.addToSaving(tokenContractAddress, addedAmount, 0);
+
+    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
+    expect(savedBalance.balance).to.equal(tokensAmount(600));
+    expect(savedBalance.goal).to.equal(savingGoal);
+  });
 
 });
 

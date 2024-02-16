@@ -27,6 +27,16 @@ contract Saving {
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
+    function addToSaving(
+        address _tokenAddress,
+        uint _amount,
+        uint _id
+    ) external {
+        Savings storage saving = _findSaving(_tokenAddress, _id);
+        saving.balance += _amount;
+        _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
+    }
+
     function withdrawSaving(
         address _tokenAddress,
         uint _amount,
