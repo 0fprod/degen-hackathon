@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+cache
+artifacts
+typechain-types
+coverage.json
+coverage
+deployments
+.env
