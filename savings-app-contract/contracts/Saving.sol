@@ -11,25 +11,25 @@ contract Saving {
         address tokenAddress;
     }
 
-    mapping(address => Savings) public savingsByUser;
+    mapping(address => Savings[]) public savingsByUser;
 
     function createSaving(
         address _tokenAddress,
         uint _amount,
         uint _goal
     ) external {
-        savingsByUser[msg.sender] = Savings(_amount, _goal, _tokenAddress);
-        transferFrom(_tokenAddress, msg.sender, address(this), _amount);
+        savingsByUser[msg.sender].push(Savings(_amount, _goal, _tokenAddress));
+        _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
     function withdrawSaving(address _tokenAddress, uint _amount) external {
-        Savings storage saving = savingsByUser[msg.sender];
+        Savings storage saving = _findSaving(_tokenAddress);
         require(saving.balance >= _amount, "Insufficient balance");
         saving.balance -= _amount;
-        transferFrom(_tokenAddress, address(this), msg.sender, _amount);
+        _transferFrom(_tokenAddress, address(this), msg.sender, _amount);
     }
 
-    function transferFrom(
+    function _transferFrom(
         address _tokenAddress,
         address _sender,
         address _recipient,
@@ -43,10 +43,22 @@ contract Saving {
     }
 
     function getSavings(
-        address tokenAddress
+        address _tokenAddress
     ) external view returns (Savings memory) {
-        Savings memory saving = savingsByUser[msg.sender];
-        require(saving.tokenAddress == tokenAddress, "No savings found");
+        Savings memory saving = _findSaving(_tokenAddress);
+        require(saving.tokenAddress == _tokenAddress, "No savings found");
         return saving;
+    }
+
+    function _findSaving(
+        address _tokenAddress
+    ) internal view returns (Savings storage) {
+        Savings[] storage savings = savingsByUser[msg.sender];
+        for (uint i = 0; i < savings.length; i++) {
+            if (savings[i].tokenAddress == _tokenAddress) {
+                return savings[i];
+            }
+        }
+        revert("No savings found");
     }
 }
