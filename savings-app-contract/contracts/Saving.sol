@@ -21,6 +21,14 @@ contract Saving {
         savingsByUser[msg.sender] = Savings(_amount, _goal, _tokenAddress);
         transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
+
+    function withdrawSaving(address _tokenAddress, uint _amount) external {
+        Savings storage saving = savingsByUser[msg.sender];
+        require(saving.balance >= _amount, "Insufficient balance");
+        saving.balance -= _amount;
+        transferFrom(_tokenAddress, address(this), msg.sender, _amount);
+    }
+
     function transferFrom(
         address _tokenAddress,
         address _sender,
@@ -41,3 +49,4 @@ contract Saving {
         require(saving.tokenAddress == tokenAddress, "No savings found");
         return saving;
     }
+}

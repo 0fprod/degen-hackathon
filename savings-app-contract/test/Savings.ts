@@ -51,6 +51,23 @@ describe("Savings", function () {
     expect(savedBalance.goal).to.equal(savingGoal);
   });
 
+  it('withdraw a token', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    const depositedAmount = tokensAmount(500);
+    await tokenContract.approve(savingContractAddress, depositedAmount);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+
+    // Act
+    await tokenContract.approve(savingContractAddress, depositedAmount);
+    await savingContract.withdrawSaving(tokenContractAddress, depositedAmount);
+
+    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress);
+    expect(savedBalance.balance).to.equal(0);
+    expect(savedBalance.goal).to.equal(savingGoal);
+  });
+
 
 });
 
