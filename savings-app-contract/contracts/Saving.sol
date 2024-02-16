@@ -6,24 +6,33 @@ import {console} from "hardhat/console.sol";
 
 contract Saving {
     struct Savings {
+        uint id;
         uint balance;
         uint goal;
-        address tokenAddress;
     }
 
-    mapping(address => Savings[]) public savingsByUser;
+    mapping(address => mapping(address => Savings[]))
+        public savingsByUserAndToken;
 
     function createSaving(
         address _tokenAddress,
         uint _amount,
         uint _goal
     ) external {
-        savingsByUser[msg.sender].push(Savings(_amount, _goal, _tokenAddress));
+        Savings[] storage savings = savingsByUserAndToken[msg.sender][
+            _tokenAddress
+        ];
+        uint id = savings.length;
+        savings.push(Savings(id, _amount, _goal));
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
-    function withdrawSaving(address _tokenAddress, uint _amount) external {
-        Savings storage saving = _findSaving(_tokenAddress);
+    function withdrawSaving(
+        address _tokenAddress,
+        uint _amount,
+        uint _id
+    ) external {
+        Savings storage saving = _findSaving(_tokenAddress, _id);
         require(saving.balance >= _amount, "Insufficient balance");
         saving.balance -= _amount;
         _transferFrom(_tokenAddress, address(this), msg.sender, _amount);
@@ -43,22 +52,21 @@ contract Saving {
     }
 
     function getSavings(
-        address _tokenAddress
+        address _tokenAddress,
+        uint _id
     ) external view returns (Savings memory) {
-        Savings memory saving = _findSaving(_tokenAddress);
-        require(saving.tokenAddress == _tokenAddress, "No savings found");
+        Savings memory saving = _findSaving(_tokenAddress, _id);
         return saving;
     }
 
     function _findSaving(
-        address _tokenAddress
+        address _tokenAddress,
+        uint _id
     ) internal view returns (Savings storage) {
-        Savings[] storage savings = savingsByUser[msg.sender];
-        for (uint i = 0; i < savings.length; i++) {
-            if (savings[i].tokenAddress == _tokenAddress) {
-                return savings[i];
-            }
-        }
-        revert("No savings found");
+        Savings[] storage savings = savingsByUserAndToken[msg.sender][
+            _tokenAddress
+        ];
+        require(savings.length > _id, "Saving not found for the given id");
+        return savings[_id];
     }
 }

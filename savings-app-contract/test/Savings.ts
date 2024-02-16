@@ -43,8 +43,7 @@ describe("SavingContract allow users to", function () {
     return { savingContract, savingContractAddress };
   }
 
-
-  it('save a token', async function () {
+  it('create a Saving for a token', async function () {
     const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
     const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
     const savingGoal = tokensAmount(1000);
@@ -54,12 +53,12 @@ describe("SavingContract allow users to", function () {
     // Act
     await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
 
-    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress);
+    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
     expect(savedBalance.balance).to.equal(depositedAmount);
     expect(savedBalance.goal).to.equal(savingGoal);
   });
 
-  it('save multiple tokens', async function () {
+  it('create a Save for multiple tokens', async function () {
     const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
     const { tokenContract: anotherTokenContract, tokenContractAddress: anotherTokenContractAddress } = await loadFixture(deployAnotherErc20Fixture);
     const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
@@ -74,12 +73,33 @@ describe("SavingContract allow users to", function () {
     await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
     await savingContract.createSaving(anotherTokenContractAddress, anotherDepositedAmount, anotherSavingGoal);
 
-    const aTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress);
-    const anotherTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(anotherTokenContractAddress);
+    const aTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
+    const anotherTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(anotherTokenContractAddress, 0);
     expect(aTokenSaving.balance).to.equal(depositedAmount);
     expect(aTokenSaving.goal).to.equal(savingGoal);
     expect(anotherTokenSaving.balance).to.equal(anotherDepositedAmount);
     expect(anotherTokenSaving.goal).to.equal(anotherSavingGoal);
+  });
+
+  it('create multiple Savings for a token', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    const anotherSavingGoal = tokensAmount(1000);
+    const depositedAmount = tokensAmount(500);
+    const anotherDepositedAmount = tokensAmount(600);
+    await tokenContract.approve(savingContractAddress, tokensAmount(2000));
+
+    // Act
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, anotherDepositedAmount, anotherSavingGoal);
+
+    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
+    const anotherSavedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 1);
+    expect(savedBalance.balance).to.equal(depositedAmount);
+    expect(savedBalance.goal).to.equal(savingGoal);
+    expect(anotherSavedBalance.balance).to.equal(anotherDepositedAmount);
+    expect(anotherSavedBalance.goal).to.equal(anotherSavingGoal);
   });
 
   it('withdraw a token', async function () {
@@ -92,9 +112,9 @@ describe("SavingContract allow users to", function () {
 
     // Act
     await tokenContract.approve(savingContractAddress, depositedAmount);
-    await savingContract.withdrawSaving(tokenContractAddress, depositedAmount);
+    await savingContract.withdrawSaving(tokenContractAddress, depositedAmount, 0);
 
-    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress);
+    const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
     expect(savedBalance.balance).to.equal(0);
     expect(savedBalance.goal).to.equal(savingGoal);
   });
