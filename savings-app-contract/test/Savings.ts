@@ -9,7 +9,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { Saving } from "../typechain-types";
 
 describe("SavingContract allow users to", function () {
-  let signers: HardhatEthersSigner[] = [];
+  let signers: HardhatEthersSigner[];
 
   this.beforeAll(async () => {
     signers = await ethers.getSigners();
@@ -149,6 +149,30 @@ describe("SavingContract allow users to", function () {
     expect(progress.balance).to.equal(depositedAmount);
     expect(progress.goal).to.equal(savingGoal);
     expect(progress.progress).to.equal(50);
+  });
+
+  it('query all the Savings for a user', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { tokenContract: anotherTokenContract, tokenContractAddress: anotherTokenContractAddress } = await loadFixture(deployAnotherErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    const anotherSavingGoal = tokensAmount(1000);
+    await tokenContract.approve(savingContractAddress, savingGoal);
+    await anotherTokenContract.approve(savingContractAddress, anotherSavingGoal);
+
+    // Act
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), tokensAmount(10));
+    await savingContract.createSaving(anotherTokenContractAddress, tokensAmount(600), anotherSavingGoal);
+
+    const userSavings: Saving.SavingsStructOutput[] = await savingContract.getUserSavings();
+    expect(userSavings.length).to.equal(3);
+    expect(userSavings[0].balance).to.equal(tokensAmount(500));
+    expect(userSavings[0].goal).to.equal(savingGoal);
+    expect(userSavings[1].balance).to.equal(tokensAmount(7));
+    expect(userSavings[1].goal).to.equal(tokensAmount(10));
+    expect(userSavings[2].balance).to.equal(tokensAmount(600));
+    expect(userSavings[2].goal).to.equal(anotherSavingGoal);
   });
 
   // Edge cases

@@ -69,6 +69,14 @@ contract Saving {
         return _findSaving(_tokenAddress, _id);
     }
 
+    function getUserSavings()
+        external
+        view
+        returns (Savings[] memory _userSavings)
+    {
+        _userSavings = savingsByUserAndToken[msg.sender];
+    }
+
     function _findSaving(
         address _tokenAddress,
         uint _id
