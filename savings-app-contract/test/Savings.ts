@@ -57,7 +57,7 @@ describe("SavingContract allow users to", function () {
     expect(savedBalance.goal).to.equal(savingGoal);
   });
 
-  it('create a Save for multiple tokens', async function () {
+  it('create a Saving for multiple tokens', async function () {
     const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
     const { tokenContract: anotherTokenContract, tokenContractAddress: anotherTokenContractAddress } = await loadFixture(deployAnotherErc20Fixture);
     const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
@@ -73,7 +73,7 @@ describe("SavingContract allow users to", function () {
     await savingContract.createSaving(anotherTokenContractAddress, anotherDepositedAmount, anotherSavingGoal);
 
     const aTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
-    const anotherTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(anotherTokenContractAddress, 0);
+    const anotherTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(anotherTokenContractAddress, 1);
     expect(aTokenSaving.balance).to.equal(depositedAmount);
     expect(aTokenSaving.goal).to.equal(savingGoal);
     expect(anotherTokenSaving.balance).to.equal(anotherDepositedAmount);

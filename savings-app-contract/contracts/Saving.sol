@@ -7,25 +7,23 @@ import {console} from "hardhat/console.sol";
 contract Saving {
     struct Savings {
         uint id;
+        address tokenAddress;
         uint balance;
         uint goal;
         uint8 progress;
     }
 
-    mapping(address => mapping(address => Savings[]))
-        public savingsByUserAndToken;
+    mapping(address => Savings[]) private savingsByUserAndToken;
 
     function createSaving(
         address _tokenAddress,
         uint _amount,
         uint _goal
     ) external {
-        Savings[] storage savings = savingsByUserAndToken[msg.sender][
-            _tokenAddress
-        ];
-        uint id = savings.length;
+        Savings[] storage savings = savingsByUserAndToken[msg.sender];
         uint8 progress = _calculateProgress(_amount, _goal);
-        savings.push(Savings(id, _amount, _goal, progress));
+        uint id = savings.length;
+        savings.push(Savings(id, _tokenAddress, _amount, _goal, progress));
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
@@ -68,19 +66,22 @@ contract Saving {
         address _tokenAddress,
         uint _id
     ) external view returns (Savings memory) {
-        Savings memory saving = _findSaving(_tokenAddress, _id);
-        return saving;
+        return _findSaving(_tokenAddress, _id);
     }
 
     function _findSaving(
         address _tokenAddress,
         uint _id
     ) internal view returns (Savings storage) {
-        Savings[] storage savings = savingsByUserAndToken[msg.sender][
-            _tokenAddress
-        ];
-        require(savings.length > _id, "Saving not found for the given id");
-        return savings[_id];
+        Savings[] storage savings = savingsByUserAndToken[msg.sender];
+        for (uint i = 0; i < savings.length; i++) {
+            if (
+                savings[i].id == _id && savings[i].tokenAddress == _tokenAddress
+            ) {
+                return savings[i];
+            }
+        }
+        revert("Saving not found for the given id");
     }
 
     function _calculateProgress(
