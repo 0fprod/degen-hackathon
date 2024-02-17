@@ -116,6 +116,7 @@ describe("SavingContract allow users to", function () {
     const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
     expect(savedBalance.balance).to.equal(0);
     expect(savedBalance.goal).to.equal(savingGoal);
+    expect(savedBalance.progress).to.equal(0);
   });
 
   it('add to an existing Saving', async function () {

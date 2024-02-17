@@ -111,7 +111,10 @@ contract Saving {
         if (saving.isLocked && saving.progress < 100) {
             revert("Saving is locked until goal is reached");
         }
+
         saving.balance -= _amount;
+        saving.progress = _calculateProgress(saving.balance, saving.goal);
+
         _transferFrom(_tokenAddress, address(this), msg.sender, _amount);
     }
 
