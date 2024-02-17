@@ -136,6 +136,26 @@ describe("SavingContract allow users to", function () {
     expect(savedBalance.goal).to.equal(savingGoal);
   });
 
+  it('query the progress of a Saving', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    const depositedAmount = tokensAmount(500);
+    await tokenContract.approve(savingContractAddress, depositedAmount);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+
+    // Act
+    const progress: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
+    expect(progress.balance).to.equal(depositedAmount);
+    expect(progress.goal).to.equal(savingGoal);
+    expect(progress.progress).to.equal(50);
+  });
+
+  // Edge cases
+  //TODO: Create a test for the case when the user tries to withdraw more than the goal
+  //TODO: Create a test for the case when the user adds to a Saving that has already reached the goal
+  //TODO: Create a test for the case when the user adds to a Saving and the total balance exceeds the goal
+
 });
 
 function tokensAmount(amount: number): BigNumberish {

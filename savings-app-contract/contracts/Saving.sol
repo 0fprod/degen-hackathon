@@ -9,6 +9,7 @@ contract Saving {
         uint id;
         uint balance;
         uint goal;
+        uint8 progress;
     }
 
     mapping(address => mapping(address => Savings[]))
@@ -23,7 +24,8 @@ contract Saving {
             _tokenAddress
         ];
         uint id = savings.length;
-        savings.push(Savings(id, _amount, _goal));
+        uint8 progress = _calculateProgress(_amount, _goal);
+        savings.push(Savings(id, _amount, _goal, progress));
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
@@ -34,6 +36,7 @@ contract Saving {
     ) external {
         Savings storage saving = _findSaving(_tokenAddress, _id);
         saving.balance += _amount;
+        saving.progress = _calculateProgress(saving.balance, saving.goal);
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
@@ -78,5 +81,12 @@ contract Saving {
         ];
         require(savings.length > _id, "Saving not found for the given id");
         return savings[_id];
+    }
+
+    function _calculateProgress(
+        uint _balance,
+        uint _goal
+    ) internal pure returns (uint8) {
+        return uint8((_balance * 100) / _goal);
     }
 }
