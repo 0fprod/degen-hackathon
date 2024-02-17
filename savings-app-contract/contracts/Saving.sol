@@ -16,6 +16,13 @@ contract Saving {
 
     mapping(address => Savings[]) private savingsByUserAndToken;
 
+    /**
+     * @dev Create a new saving
+     * @param _tokenAddress token address
+     * @param _amount amount to save
+     * @param _goal total goal
+     * @param _isLocked lock the saving until goal is reached
+     */
     function createSaving(
         address _tokenAddress,
         uint _amount,
@@ -31,6 +38,12 @@ contract Saving {
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
+    /**
+     * @dev Add tokens to the saving
+     * @param _tokenAddress token address
+     * @param _amount amount to add
+     * @param _id saving id
+     */
     function addToSaving(
         address _tokenAddress,
         uint _amount,
@@ -42,6 +55,13 @@ contract Saving {
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
+    /**
+     * @dev Transfer tokens from one saving to another
+     * @param _tokenAddress token address
+     * @param _fromId saving id to transfer from
+     * @param _toId saving id to transfer to
+     * @param _amount amount to transfer
+     */
     function transferASavingToAnother(
         address _tokenAddress,
         uint _fromId,
@@ -75,6 +95,12 @@ contract Saving {
         }
     }
 
+    /**
+     * @dev Withdraw tokens from the saving
+     * @param _tokenAddress token address
+     * @param _amount amount to withdraw
+     * @param _id saving id
+     */
     function withdrawSaving(
         address _tokenAddress,
         uint _amount,
@@ -89,6 +115,11 @@ contract Saving {
         _transferFrom(_tokenAddress, address(this), msg.sender, _amount);
     }
 
+    /**
+     * @dev Transfer tokens from the sender to the contract
+     * @param _tokenAddress token address
+     * @param _amount amount to transfer
+     */
     function _transferFrom(
         address _tokenAddress,
         address _sender,
@@ -102,6 +133,11 @@ contract Saving {
         require(success, "Transfer failed");
     }
 
+    /**
+     * @dev Get the saving by id
+     * @param _tokenAddress token address
+     * @param _id saving id
+     */
     function getSavings(
         address _tokenAddress,
         uint _id
@@ -109,6 +145,9 @@ contract Saving {
         return _findSaving(_tokenAddress, _id);
     }
 
+    /**
+     * @dev Get all the savings of the user
+     */
     function getUserSavings()
         external
         view
@@ -117,6 +156,11 @@ contract Saving {
         _userSavings = savingsByUserAndToken[msg.sender];
     }
 
+    /**
+     * @dev Find the saving by id
+     * @param _tokenAddress token address
+     * @param _id saving id
+     */
     function _findSaving(
         address _tokenAddress,
         uint _id
@@ -132,6 +176,11 @@ contract Saving {
         revert("Saving not found for the given id");
     }
 
+    /**
+     * @dev Calculate the progress of the saving
+     * @param _balance current balance
+     * @param _goal total goal
+     */
     function _calculateProgress(
         uint _balance,
         uint _goal
