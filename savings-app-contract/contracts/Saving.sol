@@ -11,6 +11,7 @@ contract Saving {
         uint balance;
         uint goal;
         uint8 progress;
+        bool isLocked;
     }
 
     mapping(address => Savings[]) private savingsByUserAndToken;
@@ -18,12 +19,15 @@ contract Saving {
     function createSaving(
         address _tokenAddress,
         uint _amount,
-        uint _goal
+        uint _goal,
+        bool _isLocked
     ) external {
         Savings[] storage savings = savingsByUserAndToken[msg.sender];
         uint8 progress = _calculateProgress(_amount, _goal);
         uint id = savings.length;
-        savings.push(Savings(id, _tokenAddress, _amount, _goal, progress));
+        savings.push(
+            Savings(id, _tokenAddress, _amount, _goal, progress, _isLocked)
+        );
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
@@ -78,6 +82,9 @@ contract Saving {
     ) external {
         Savings storage saving = _findSaving(_tokenAddress, _id);
         require(saving.balance >= _amount, "Insufficient balance");
+        if (saving.isLocked && saving.progress < 100) {
+            revert("Saving is locked until goal is reached");
+        }
         saving.balance -= _amount;
         _transferFrom(_tokenAddress, address(this), msg.sender, _amount);
     }

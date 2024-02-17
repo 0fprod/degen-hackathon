@@ -50,7 +50,7 @@ describe("SavingContract allow users to", function () {
     await tokenContract.approve(savingContractAddress, savingGoal);
 
     // Act
-    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal, false);
 
     const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
     expect(savedBalance.balance).to.equal(depositedAmount);
@@ -69,8 +69,8 @@ describe("SavingContract allow users to", function () {
     await anotherTokenContract.approve(savingContractAddress, anotherSavingGoal);
 
     // Act
-    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
-    await savingContract.createSaving(anotherTokenContractAddress, anotherDepositedAmount, anotherSavingGoal);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal, false);
+    await savingContract.createSaving(anotherTokenContractAddress, anotherDepositedAmount, anotherSavingGoal, false);
 
     const aTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
     const anotherTokenSaving: Saving.SavingsStructOutput = await savingContract.getSavings(anotherTokenContractAddress, 1);
@@ -90,8 +90,8 @@ describe("SavingContract allow users to", function () {
     await tokenContract.approve(savingContractAddress, tokensAmount(2000));
 
     // Act
-    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
-    await savingContract.createSaving(tokenContractAddress, anotherDepositedAmount, anotherSavingGoal);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal, false);
+    await savingContract.createSaving(tokenContractAddress, anotherDepositedAmount, anotherSavingGoal, false);
 
     const savedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
     const anotherSavedBalance: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 1);
@@ -107,7 +107,7 @@ describe("SavingContract allow users to", function () {
     const savingGoal = tokensAmount(1000);
     const depositedAmount = tokensAmount(500);
     await tokenContract.approve(savingContractAddress, depositedAmount);
-    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal, false);
 
     // Act
     await tokenContract.approve(savingContractAddress, depositedAmount);
@@ -125,7 +125,7 @@ describe("SavingContract allow users to", function () {
     const depositedAmount = tokensAmount(500);
     const addedAmount = tokensAmount(100);
     await tokenContract.approve(savingContractAddress, depositedAmount);
-    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal, false);
 
     // Act
     await tokenContract.approve(savingContractAddress, addedAmount);
@@ -142,7 +142,7 @@ describe("SavingContract allow users to", function () {
     const savingGoal = tokensAmount(1000);
     const depositedAmount = tokensAmount(500);
     await tokenContract.approve(savingContractAddress, depositedAmount);
-    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, depositedAmount, savingGoal, false);
 
     // Act
     const progress: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
@@ -161,9 +161,9 @@ describe("SavingContract allow users to", function () {
     await anotherTokenContract.approve(savingContractAddress, anotherSavingGoal);
 
     // Act
-    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal);
-    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), tokensAmount(10));
-    await savingContract.createSaving(anotherTokenContractAddress, tokensAmount(600), anotherSavingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal, false);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), tokensAmount(10), false);
+    await savingContract.createSaving(anotherTokenContractAddress, tokensAmount(600), anotherSavingGoal, false);
 
     const userSavings: Saving.SavingsStructOutput[] = await savingContract.getUserSavings();
     expect(userSavings.length).to.equal(3);
@@ -180,8 +180,8 @@ describe("SavingContract allow users to", function () {
     const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
     const savingGoal = tokensAmount(1000);
     await tokenContract.approve(savingContractAddress, savingGoal);
-    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal);
-    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal, false);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), savingGoal, false);
 
     // Act
     await savingContract.transferASavingToAnother(tokenContractAddress, 1, 0, tokensAmount(7));
@@ -197,8 +197,8 @@ describe("SavingContract allow users to", function () {
     const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
     const savingGoal = tokensAmount(1000);
     await tokenContract.approve(savingContractAddress, savingGoal);
-    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal);
-    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), tokensAmount(10));
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal, false);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), tokensAmount(10), false);
 
     // Act
     await savingContract.transferASavingToAnother(tokenContractAddress, 0, 1, tokensAmount(7));
@@ -207,6 +207,18 @@ describe("SavingContract allow users to", function () {
     const secondSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 1);
     expect(firstSaving.balance).to.equal(tokensAmount(497));
     expect(secondSaving.balance).to.equal(tokensAmount(10));
+  });
+
+  it('lock a Saving until goal is reached', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    await tokenContract.approve(savingContractAddress, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal, true);
+
+    // Act
+    // revert withdrawSaving if the Saving is locked
+    await expect(savingContract.withdrawSaving(tokenContractAddress, tokensAmount(500), 0)).to.be.revertedWith('Saving is locked until goal is reached');
   });
 
 
