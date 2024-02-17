@@ -1,44 +1,37 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-deploy";
+import "@nomicfoundation/hardhat-verify";
 require('dotenv').config();
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
+const SPARK_RPC = process.env.SPARK_RPC || '';
+const EXPLORER_SPARK_API = process.env.EXPLORER_FUSESPARK_APIKEY || '';
 
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   defaultNetwork: "hardhat",
   networks: {
     spark: {
-      url: 'https://rpc.fusespark.io/',
-      accounts: {
-        mnemonic: PRIVATE_KEY
-      },
+      url: SPARK_RPC,
+      accounts: [PRIVATE_KEY],
     },
   },
-  // etherscan: {
-  //   apiKey: {
-  //     fuse: "YOUR_KEY_IF_YOU_HAVE_ONE",
-  //     spark: "YOUR_KEY_IF_YOU_HAVE_ONE"
-  //   },
-  //   customChains: [
-  //     {
-  //       network: "fuse",
-  //       chainId: 122,
-  //       urls: {
-  //         apiURL: "https://explorer.fuse.io/api",
-  //         browserURL: "https://explorer.fuse.io"
-  //       }
-  //     },
-  //     {
-  //       network: "spark",
-  //       chainId: 123,
-  //       urls: {
-  //         apiURL: "https://explorer.fusespark.io/api",
-  //         browserURL: "https://explorer.fusespark.io"
-  //       }
-  //     }
-  //   ]
-  // }
+  etherscan: {
+    apiKey: {
+      spark: EXPLORER_SPARK_API
+    },
+    customChains: [
+      {
+        network: "spark",
+        chainId: 123,
+        urls: {
+          apiURL: "https://explorer.fusespark.io/api",
+          browserURL: "https://explorer.fusespark.io"
+        }
+      }
+    ]
+  }
 };
 
 export default config;
