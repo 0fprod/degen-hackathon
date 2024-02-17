@@ -227,7 +227,8 @@ describe("SavingContract allow users to", function () {
   //TODO: Create a test for the case when the user tries to withdraw more than the goal
   //TODO: Create a test for the case when the user adds to a Saving that has already reached the goal
   //TODO: Create a test for the case when the user adds to a Saving and the total balance exceeds the goal
-
+  //TODO: Implement delete of savings
+  //TODO: Emit events for all the actions to be able to generate historical tx data
 });
 
 function tokensAmount(amount: number): BigNumberish {
