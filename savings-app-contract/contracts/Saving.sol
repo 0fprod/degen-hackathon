@@ -38,6 +38,39 @@ contract Saving {
         _transferFrom(_tokenAddress, msg.sender, address(this), _amount);
     }
 
+    function transferASavingToAnother(
+        address _tokenAddress,
+        uint _fromId,
+        uint _toId,
+        uint _amount
+    ) external {
+        Savings storage savingFrom = _findSaving(_tokenAddress, _fromId);
+        Savings storage savingTo = _findSaving(_tokenAddress, _toId);
+        require(savingFrom.balance >= _amount, "Insufficient balance");
+
+        // handle savingTo exceeding goal
+        if (savingTo.balance + _amount > savingTo.goal) {
+            uint excess = savingTo.balance + _amount - savingTo.goal;
+            savingTo.balance = savingTo.goal;
+            savingFrom.balance -= _amount - excess;
+            savingFrom.progress = _calculateProgress(
+                savingFrom.balance,
+                savingFrom.goal
+            );
+        } else {
+            savingFrom.balance -= _amount;
+            savingTo.balance += _amount;
+            savingFrom.progress = _calculateProgress(
+                savingFrom.balance,
+                savingFrom.goal
+            );
+            savingTo.progress = _calculateProgress(
+                savingTo.balance,
+                savingTo.goal
+            );
+        }
+    }
+
     function withdrawSaving(
         address _tokenAddress,
         uint _amount,

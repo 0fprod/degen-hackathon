@@ -175,6 +175,41 @@ describe("SavingContract allow users to", function () {
     expect(userSavings[2].goal).to.equal(anotherSavingGoal);
   });
 
+  it('transfer from one Saving to another', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    await tokenContract.approve(savingContractAddress, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), savingGoal);
+
+    // Act
+    await savingContract.transferASavingToAnother(tokenContractAddress, 1, 0, tokensAmount(7));
+
+    const firstSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
+    const secondSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 1);
+    expect(firstSaving.balance).to.equal(tokensAmount(507));
+    expect(secondSaving.balance).to.equal(tokensAmount(0));
+  });
+
+  it('transfer from one Saving to another handling excess', async function () {
+    const { tokenContract, tokenContractAddress } = await loadFixture(deployErc20Fixture);
+    const { savingContract, savingContractAddress } = await loadFixture(deployFixture);
+    const savingGoal = tokensAmount(1000);
+    await tokenContract.approve(savingContractAddress, savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(500), savingGoal);
+    await savingContract.createSaving(tokenContractAddress, tokensAmount(7), tokensAmount(10));
+
+    // Act
+    await savingContract.transferASavingToAnother(tokenContractAddress, 0, 1, tokensAmount(7));
+
+    const firstSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 0);
+    const secondSaving: Saving.SavingsStructOutput = await savingContract.getSavings(tokenContractAddress, 1);
+    expect(firstSaving.balance).to.equal(tokensAmount(497));
+    expect(secondSaving.balance).to.equal(tokensAmount(10));
+  });
+
+
   // Edge cases
   //TODO: Create a test for the case when the user tries to withdraw more than the goal
   //TODO: Create a test for the case when the user adds to a Saving that has already reached the goal
