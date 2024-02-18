@@ -19,7 +19,8 @@ export default function NewSavingCard(props: NewSavingCardProps) {
   // Create a form in this component where the user can input the amount, goal and token address
   const [amount, setAmount] = React.useState<bigint>(0n);
   const [goal, setGoal] = React.useState<bigint>(0n);
-  const [ERC20Token, setERC20Token] = React.useState<Address>('0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
+  // const [ERC20Token, setERC20Token] = React.useState<Address>('0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
+  const [ERC20Token, setERC20Token] = React.useState<Address>('0x610178dA211FEF7D417bC0e6FeD39F05609AD788');
   const [lock, setLock] = React.useState<boolean>(false);
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {

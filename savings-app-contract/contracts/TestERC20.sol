@@ -12,7 +12,7 @@ contract TestERC20 is ERC20 {
         _mint(msg.sender, initialSupply);
     }
 
-    receive() external payable {} // to support receiving ETH by default
+    receive() external payable {}
 
     fallback() external payable {}
 }

@@ -1,8 +1,7 @@
 import './styles/Home.css';
-// import { ethers } from 'ethers';
-// import { useFuse } from './hooks/fuse.hook';
+import { useFuse } from './hooks/fuse.hook';
 import { createWalletClient, custom, Address, createPublicClient, http } from 'viem';
-import { localhost } from 'viem/chains';
+import { localhost, fuse } from 'viem/chains';
 import { useEffect, useState } from 'react';
 import { savingContract } from './contracts/saving';
 import { erc20Abi } from 'viem';
@@ -11,17 +10,17 @@ import NewSavingCard from './components/newSavingCard/NewSavingCard';
 import SavingCard from './components/saving/Saving';
 
 const walletClient = createWalletClient({
-  chain: localhost,
+  chain: !import.meta.env.DEV ? localhost : fuse,
   transport: custom(window.ethereum!),
 });
 
 const publicClient = createPublicClient({
-  chain: localhost,
+  chain: !import.meta.env.DEV ? localhost : fuse,
   transport: http(),
 });
 
 export default function Home() {
-  // const { fuse, loading } = useFuse(apiKey, credentials);
+  const { fuse, loading } = useFuse();
   const [account, setAccount] = useState<Address>();
   const [userSavings, setUserSavings] = useState<Saving[]>();
 
@@ -31,7 +30,7 @@ export default function Home() {
   };
 
   const createSaving = async (tokenAddress: Address, amount: bigint, goal: bigint, isLocked: boolean) => {
-    if (!account) return;
+    if (!account && !fuse) return;
     const { request } = await publicClient.simulateContract({
       ...savingContract,
       functionName: 'createSaving',
@@ -113,6 +112,8 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [account]);
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <main className="main">
