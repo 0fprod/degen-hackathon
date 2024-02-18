@@ -16,8 +16,8 @@ describe("SavingContract allow users to", function () {
   });
 
   async function deployErc20Fixture() {
-    const tokenFactory = await ethers.getContractFactory("Token");
-    const tokenContract = await tokenFactory.deploy(tokensAmount(10000));
+    const tokenFactory = await ethers.getContractFactory("TestERC20");
+    const tokenContract = await tokenFactory.deploy("Test", "TT", tokensAmount(10000));
     await tokenContract.waitForDeployment();
     const tokenContractAddress = await tokenContract.getAddress();
 
@@ -25,8 +25,8 @@ describe("SavingContract allow users to", function () {
   }
 
   async function deployAnotherErc20Fixture() {
-    const tokenFactory = await ethers.getContractFactory("Token");
-    const tokenContract = await tokenFactory.deploy(tokensAmount(10000));
+    const tokenFactory = await ethers.getContractFactory("TestERC20");
+    const tokenContract = await tokenFactory.deploy("Test", "TT", tokensAmount(10000));
     await tokenContract.waitForDeployment();
     const tokenContractAddress = await tokenContract.getAddress();
 

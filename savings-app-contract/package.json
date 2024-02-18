@@ -5,6 +5,7 @@
     "test": "hardhat test",
     "coverage": "hardhat coverage",
     "deploy:sparkfuse": "hardhat deploy --network spark",
+    "deploy:fuse": "hardhat deploy --network fuse",
     "deploy:local": "hardhat deploy --network hardhat"
   },
   "devDependencies": {
