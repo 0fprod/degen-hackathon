@@ -1,26 +1,25 @@
-import './styles/Home.css';
-import { useFuse } from './hooks/fuse.hook';
 import { createWalletClient, custom, Address, createPublicClient, http } from 'viem';
-import { localhost, fuse } from 'viem/chains';
+import { localhost } from 'viem/chains';
 import { useEffect, useState } from 'react';
 import { savingContract } from './contracts/saving';
 import { erc20Abi } from 'viem';
 import { type Saving } from './components/saving/Saving';
 import NewSavingCard from './components/newSavingCard/NewSavingCard';
 import SavingCard from './components/saving/Saving';
+import { Box, Button, Heading, SimpleGrid, VStack, Text, Divider } from '@chakra-ui/react';
+import React from 'react';
 
 const walletClient = createWalletClient({
-  chain: !import.meta.env.DEV ? localhost : fuse,
+  chain: localhost,
   transport: custom(window.ethereum!),
 });
 
 const publicClient = createPublicClient({
-  chain: !import.meta.env.DEV ? localhost : fuse,
+  chain: localhost,
   transport: http(),
 });
 
 export default function Home() {
-  const { fuse, loading } = useFuse();
   const [account, setAccount] = useState<Address>();
   const [userSavings, setUserSavings] = useState<Saving[]>();
 
@@ -30,7 +29,7 @@ export default function Home() {
   };
 
   const createSaving = async (tokenAddress: Address, amount: bigint, goal: bigint, isLocked: boolean) => {
-    if (!account && !fuse) return;
+    if (!account) return;
     const { request } = await publicClient.simulateContract({
       ...savingContract,
       functionName: 'createSaving',
@@ -43,14 +42,19 @@ export default function Home() {
 
   const getUserSavings = async () => {
     if (!account) return;
-    const res = await publicClient.readContract({
-      ...savingContract,
-      functionName: 'getUserSavings',
-      account,
-      args: [],
-    });
+    try {
+      const res = await publicClient.readContract({
+        ...savingContract,
+        functionName: 'getUserSavings',
+        account,
+        args: [],
+      });
 
-    setUserSavings(res as Saving[]);
+      setUserSavings(res as Saving[]);
+    } catch (e) {
+      console.error(e);
+      setUserSavings([]);
+    }
   };
 
   const increaseAllowance = async (tokenAddress: Address, amount: bigint) => {
@@ -113,48 +117,34 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [account]);
 
-  if (loading) return <div>Loading...</div>;
-
   return (
-    <main className="main">
-      <div className="container">
-        <div className="header">
-          <h1 className="title">
-            Welcome to <span className="gradient-text-0">SavingsApp.</span>
-          </h1>
+    <VStack padding={'2rem'} alignItems={'flex-start'} bg={'#0B2027'} color={'white'}>
+      <Heading>Welcome to SavingsApp!</Heading>
+      <Divider />
 
-          <p className="description">
-            Make your{' '}
-            <span className="gradient-text-3">
-              <u>dreams come true</u>
-            </span>
-            , one token at a time! Join our savings contract and turn your goals into <b>effortless achievements.</b>{' '}
-            🚀💰 <span className="gradient-text-1">#SmartSavings.</span>
-          </p>
-        </div>
+      <Text>
+        Make your dreams come true, one token at a time! Join our savings contract and turn your goals into effortless
+        achievements. 🚀💰 #SmartSavings
+      </Text>
+      <Box margin={'1rem'}>
         {account ? (
-          <div>
-            <div>Connected: {account}</div>
-          </div>
+          <React.Fragment>
+            <Text>Connected: {account}</Text>
+            <Button> Disconnect </Button>
+          </React.Fragment>
         ) : (
-          <button onClick={connect}>Connect Wallet</button>
+          <Button onClick={connect}>Connect Wallet</Button>
         )}
+      </Box>
+      <Divider />
+      <Heading>My Savings</Heading>
+      <SimpleGrid columns={3} spacing={5}>
+        <NewSavingCard createSaving={createSaving} increaseAllowance={increaseAllowance} />
 
-        <div className="grid">
-          {userSavings?.map((saving) => (
-            <div key={saving.id.toString()} className="card">
-              <SavingCard saving={saving} withdraw={withdraw} deposit={deposit} />
-            </div>
-          ))}
-
-          <NewSavingCard
-            title="Create a saving"
-            description="Create"
-            createSaving={createSaving}
-            increaseAllowance={increaseAllowance}
-          />
-        </div>
-      </div>
-    </main>
+        {userSavings?.map((saving) => (
+          <SavingCard key={saving.id.toString()} saving={saving} withdraw={withdraw} deposit={deposit} />
+        ))}
+      </SimpleGrid>
+    </VStack>
   );
 }

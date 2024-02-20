@@ -1,26 +1,31 @@
+import {
+  Image,
+  Button,
+  ButtonGroup,
+  Card,
+  CardBody,
+  CardFooter,
+  Divider,
+  Heading,
+  Stack,
+  Checkbox,
+  Input,
+  InputGroup,
+  InputLeftAddon,
+} from '@chakra-ui/react';
 import { ethers } from 'ethers';
 import React from 'react';
 import { Address } from 'viem';
 
 interface NewSavingCardProps {
-  title: string;
-  description: string;
   createSaving: (tokenAddress: Address, amount: bigint, goal: bigint, isLocked: boolean) => void;
   increaseAllowance: (tokenAddress: Address, amount: bigint) => void;
 }
 
-//TODO: Parametrize this with the actual token address fetched from the user wall
 export default function NewSavingCard(props: NewSavingCardProps) {
-  const randomBetween0And3 = Math.floor(Math.random() * 4);
-  const className = `gradient-text-${randomBetween0And3}`;
-  // const ERC20Token = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-  // const amount = ethers.utils.parseEther('10').toBigInt();
-  // const goal = ethers.utils.parseEther('100').toBigInt();
-  // Create a form in this component where the user can input the amount, goal and token address
   const [amount, setAmount] = React.useState<bigint>(0n);
   const [goal, setGoal] = React.useState<bigint>(0n);
-  // const [ERC20Token, setERC20Token] = React.useState<Address>('0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
-  const [ERC20Token, setERC20Token] = React.useState<Address>('0x610178dA211FEF7D417bC0e6FeD39F05609AD788');
+  const [ERC20Token, setERC20Token] = React.useState<Address>('0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
   const [lock, setLock] = React.useState<boolean>(false);
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,8 +45,6 @@ export default function NewSavingCard(props: NewSavingCardProps) {
   };
 
   const handleClick = async () => {
-    // First we need to increase the allowance of the token to the saving contract
-    // show alert if amount exceeds goal
     if (amount > goal) {
       alert('Amount exceeds goal');
       return;
@@ -51,36 +54,37 @@ export default function NewSavingCard(props: NewSavingCardProps) {
   };
 
   return (
-    <div className="card" style={{ marginLeft: '3rem' }}>
-      <img
-        src="/images/vault.jpeg"
-        alt="create saving account"
-        style={{ maxWidth: '15rem', margin: 'auto', maxHeight: '10rem' }}
-      />
-      <div className="card-text">
-        <h2 className={className}>{props.title}</h2>
-      </div>
-      <form style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-        <label>
-          Amount:
-          <input type="text" value={ethers.utils.formatEther(amount)} onChange={handleAmountChange} />
-        </label>
-        <label>
-          Goal:
-          <input type="text" value={ethers.utils.formatEther(goal)} onChange={handleGoalChange} />
-        </label>
-        <label>
-          Token address:
-          <input type="text" value={ERC20Token} onChange={handleTokenChange} />
-        </label>
-        <label>
-          Lock until goal is reached:
-          <input type="checkbox" checked={lock} onChange={handleLockChange} />
-        </label>
-      </form>
-      <button className="installButton" onClick={() => handleClick()} style={{ marginLeft: '1rem' }}>
-        {props.description}
-      </button>
-    </div>
+    <Card maxW="sm" size="sm" marginRight={'5rem'}>
+      <CardBody>
+        <Image src="/images/vault.jpeg" alt="Green double couch with wooden legs" borderRadius="lg" />
+        <Stack mt="6" spacing="3">
+          <Heading size="md">Start setting your goals today!</Heading>
+          <InputGroup>
+            <InputLeftAddon>Amount</InputLeftAddon>
+            <Input value={ethers.utils.formatEther(amount)} onChange={handleAmountChange} />
+          </InputGroup>
+          <InputGroup>
+            <InputLeftAddon>Goal</InputLeftAddon>
+            <Input value={ethers.utils.formatEther(goal)} onChange={handleGoalChange} />
+          </InputGroup>
+          <InputGroup>
+            <InputLeftAddon>Token</InputLeftAddon>
+            <Input value={ERC20Token} onChange={handleTokenChange} />
+          </InputGroup>
+
+          <Checkbox checked={lock} colorScheme="green" onChange={handleLockChange}>
+            Lock until goal is reached?
+          </Checkbox>
+        </Stack>
+      </CardBody>
+      <Divider />
+      <CardFooter>
+        <ButtonGroup spacing="2">
+          <Button variant="solid" colorScheme="blue" onClick={handleClick}>
+            Create!
+          </Button>
+        </ButtonGroup>
+      </CardFooter>
+    </Card>
   );
 }

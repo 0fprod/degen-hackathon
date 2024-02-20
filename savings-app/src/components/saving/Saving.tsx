@@ -1,3 +1,19 @@
+import {
+  Image,
+  Text,
+  Card,
+  CardBody,
+  Stack,
+  Heading,
+  InputGroup,
+  InputLeftAddon,
+  Input,
+  Divider,
+  CardFooter,
+  ButtonGroup,
+  Button,
+  Progress,
+} from '@chakra-ui/react';
 import { ethers } from 'ethers';
 import React from 'react';
 import { Address } from 'viem';
@@ -18,11 +34,8 @@ interface SavingProps {
 }
 
 export default function SavingCard(props: SavingProps) {
-  const randomBetween0And3 = Math.floor(Math.random() * 4);
-  const className = `gradient-text-${randomBetween0And3}`;
   const { tokenAddress, balance, goal, isLocked, progress, id } = props.saving;
   const trimmedTokenAddress = tokenAddress.slice(0, 6) + '...' + tokenAddress.slice(-4);
-  // add input for the amount to withdraw
   const [amount, setAmount] = React.useState<bigint>(0n);
 
   const handleWithdraw = () => {
@@ -39,22 +52,44 @@ export default function SavingCard(props: SavingProps) {
   };
 
   return (
-    <React.Fragment>
-      <img src="/images/moneybag.jpeg" alt="Saving" style={{ maxWidth: '15rem', margin: 'auto', maxHeight: '10rem' }} />
-      <div className="card-text">
-        <h2 className={className}>Progress: {progress}%</h2>
-        <p>Current balance: {ethers.utils.formatUnits(balance)}</p>
-        <p>Goal: {ethers.utils.formatUnits(goal)}</p>
-        <p>Token address: {trimmedTokenAddress}</p>
-        <p>Locked: {isLocked ? 'Yes' : 'No'}</p>
-        <input
-          type="text"
-          value={ethers.utils.formatUnits(amount)}
-          onChange={(e) => setAmount(ethers.utils.parseEther(e.target.value).toBigInt())}
-        />
-        <button onClick={handleWithdraw}> Withdraw </button>
-        <button onClick={handleDeposit}> Deposit </button>
-      </div>
-    </React.Fragment>
+    <Card maxW="sm" size="sm" bg={'#CFD7C7'}>
+      <CardBody>
+        <Image src="/images/moneybag.jpeg" borderRadius="lg" />
+        <Stack mt="6" spacing="3">
+          <Heading size={'md'}>Token address: {trimmedTokenAddress}</Heading>
+          <Text>
+            <b>Progress:</b> {progress} %
+            <Progress colorScheme="green" size="sm" value={progress} hasStripe />
+          </Text>
+          <Text>
+            <b>Goal:</b> {ethers.utils.formatUnits(goal)}
+          </Text>
+          <Text>
+            <b>Current balance: </b> {ethers.utils.formatUnits(balance)}
+          </Text>
+          <Text>
+            <b>Locked:</b> {isLocked ? 'Yes' : 'No'}
+          </Text>
+          <InputGroup>
+            <InputLeftAddon>Amount</InputLeftAddon>
+            <Input
+              value={ethers.utils.formatEther(amount)}
+              onChange={(e) => setAmount(ethers.utils.parseEther(e.target.value).toBigInt())}
+            />
+          </InputGroup>
+        </Stack>
+      </CardBody>
+      <Divider />
+      <CardFooter>
+        <ButtonGroup spacing="2">
+          <Button variant="solid" bg={'#AF3B6E'} color="white" onClick={handleWithdraw}>
+            Withdraw
+          </Button>
+          <Button variant="solid" colorScheme="blue" onClick={handleDeposit}>
+            Deposit
+          </Button>
+        </ButtonGroup>
+      </CardFooter>
+    </Card>
   );
 }
