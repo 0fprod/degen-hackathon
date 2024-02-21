@@ -14,8 +14,10 @@ import {
   InputLeftAddon,
 } from '@chakra-ui/react';
 import { ethers } from 'ethers';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Address } from 'viem';
+import { useWalletClient } from '../../hooks/walletClient.hook';
+import { useAlchemy } from '../../hooks/alchemys.hook';
 
 interface NewSavingCardProps {
   createSaving: (tokenAddress: Address, amount: bigint, goal: bigint, isLocked: boolean) => void;
@@ -23,10 +25,13 @@ interface NewSavingCardProps {
 }
 
 export default function NewSavingCard(props: NewSavingCardProps) {
-  const [amount, setAmount] = React.useState<bigint>(0n);
-  const [goal, setGoal] = React.useState<bigint>(0n);
-  const [ERC20Token, setERC20Token] = React.useState<Address>('0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
-  const [lock, setLock] = React.useState<boolean>(false);
+  const { getAddresses } = useWalletClient();
+  const { core } = useAlchemy();
+  const [account, setAccount] = useState<Address>();
+  const [amount, setAmount] = useState<bigint>(0n);
+  const [goal, setGoal] = useState<bigint>(0n);
+  const [ERC20Token, setERC20Token] = useState<Address>('0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512');
+  const [lock, setLock] = useState<boolean>(false);
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(ethers.utils.parseEther(event.target.value).toBigInt());
@@ -44,14 +49,30 @@ export default function NewSavingCard(props: NewSavingCardProps) {
     setLock(event.target.checked);
   };
 
-  const handleClick = async () => {
+  const handleClick = () => {
     if (amount > goal) {
       alert('Amount exceeds goal');
       return;
     }
-    await props.increaseAllowance(ERC20Token, goal);
+    props.increaseAllowance(ERC20Token, goal);
     props.createSaving(ERC20Token, amount, goal, lock);
   };
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      const [address] = await getAddresses();
+      setAccount(address);
+    };
+    fetchAddress();
+  }, []);
+
+  useEffect(() => {
+    if (account === undefined) return;
+
+    core.getTokenBalances(`${account}`).then((balances) => {
+      console.log(balances);
+    });
+  }, [account]);
 
   return (
     <Card maxW="sm" size="sm" marginRight={'5rem'}>

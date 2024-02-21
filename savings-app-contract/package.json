@@ -6,7 +6,8 @@
     "coverage": "hardhat coverage",
     "deploy:sparkfuse": "hardhat deploy --network spark",
     "deploy:fuse": "hardhat deploy --network fuse",
-    "deploy:local": "hardhat deploy --network hardhat"
+    "deploy:local": "hardhat deploy --network hardhat",
+    "deploy:sepolia": "hardhat deploy --network sepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",

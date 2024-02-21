@@ -5,8 +5,8 @@ interface Window {
 }
 
 interface ImportMetaEnv {
-  readonly VITE_FUSE_API_KEY: string
   readonly VITE_WALLET_PRIVATE_KEY: string
+  readonly VITE_ALCHEMY_API_KEY: string
 }
 
 interface ImportMeta {

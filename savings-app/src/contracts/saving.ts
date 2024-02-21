@@ -1,5 +1,5 @@
 export const savingContract = {
-  address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+  address: '0x46f3B30b6Ac670aDa4eA84A5163f45E59360b0FA', // Sepolia
   abi: [
     {
       "inputs": [

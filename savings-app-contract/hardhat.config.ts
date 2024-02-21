@@ -5,50 +5,56 @@ import "@nomicfoundation/hardhat-verify";
 require('dotenv').config();
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
-const SPARK_RPC = process.env.SPARK_RPC || '';
-const EXPLORER_FUSESPARK_APIKEY = process.env.EXPLORER_FUSESPARK_APIKEY || '';
-const EXPLORER_SPARK_API = process.env.EXPLORER_FUSE_APIKEY || '';
+// const SPARK_RPC = process.env.SPARK_RPC || '';
+// const EXPLORER_FUSESPARK_APIKEY = process.env.EXPLORER_FUSESPARK_APIKEY || '';
+// const EXPLORER_SPARK_API = process.env.EXPLORER_FUSE_APIKEY || '';
+const SEPOLIA_RPC = process.env.SEPOLIA_RPC || '';
 
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   defaultNetwork: "hardhat",
   networks: {
-    spark: {
-      url: SPARK_RPC,
+    // spark: {
+    //   url: SPARK_RPC,
+    //   accounts: [PRIVATE_KEY],
+    // },
+    // fuse: {
+    //   url: "https://rpc.fuse.io",
+    //   accounts: [PRIVATE_KEY],
+    //   chainId: 122
+    // },
+    sepolia: {
+      url: SEPOLIA_RPC,
       accounts: [PRIVATE_KEY],
-    },
-    fuse: {
-      url: "https://rpc.fuse.io",
-      accounts: [PRIVATE_KEY],
-      chainId: 122
+      chainId: 11155111
     },
     hardhat: {
       chainId: 1337
     }
   },
   etherscan: {
-    apiKey: {
-      spark: EXPLORER_FUSESPARK_APIKEY,
-      fuse: EXPLORER_SPARK_API
-    },
-    customChains: [
-      {
-        network: "spark",
-        chainId: 123,
-        urls: {
-          apiURL: "https://explorer.fusespark.io/api",
-          browserURL: "https://explorer.fusespark.io"
-        }
-      },
-      {
-        network: "fuse",
-        chainId: 122,
-        urls: {
-          apiURL: "https://explorer.fuse.io/api",
-          browserURL: "https://explorer.fuse.io"
-        }
-      },
-    ]
+    // apiKey: {
+    //   spark: EXPLORER_FUSESPARK_APIKEY,
+    //   fuse: EXPLORER_SPARK_API
+    // },
+    // customChains: [
+    //   {
+    //     network: "spark",
+    //     chainId: 123,
+    //     urls: {
+    //       apiURL: "https://explorer.fusespark.io/api",
+    //       browserURL: "https://explorer.fusespark.io"
+    //     }
+    //   },
+    //   {
+    //     network: "fuse",
+    //     chainId: 122,
+    //     urls: {
+    //       apiURL: "https://explorer.fuse.io/api",
+    //       browserURL: "https://explorer.fuse.io"
+    //     }
+    //   },
+    // ]
   }
 };
 

@@ -1,31 +1,29 @@
-import { createWalletClient, custom, Address, createPublicClient, http } from 'viem';
-import { localhost } from 'viem/chains';
+import React from 'react';
+import NewSavingCard from './components/newSavingCard/NewSavingCard';
+import SavingCard from './components/saving/Saving';
+import { Address } from 'viem';
 import { useEffect, useState } from 'react';
 import { savingContract } from './contracts/saving';
 import { erc20Abi } from 'viem';
 import { type Saving } from './components/saving/Saving';
-import NewSavingCard from './components/newSavingCard/NewSavingCard';
-import SavingCard from './components/saving/Saving';
 import { Box, Button, Heading, SimpleGrid, VStack, Text, Divider } from '@chakra-ui/react';
-import React from 'react';
-
-const walletClient = createWalletClient({
-  chain: localhost,
-  transport: custom(window.ethereum!),
-});
-
-const publicClient = createPublicClient({
-  chain: localhost,
-  transport: http(),
-});
+import { useWalletClient } from './hooks/walletClient.hook';
+import { usePublicClient } from './hooks/walletPublic.hook';
 
 export default function Home() {
   const [account, setAccount] = useState<Address>();
   const [userSavings, setUserSavings] = useState<Saving[]>();
+  const walletClient = useWalletClient();
+  const publicClient = usePublicClient();
 
   const connect = async () => {
     const [address] = await walletClient.requestAddresses();
     setAccount(address);
+  };
+
+  const disconnect = () => {
+    setAccount(undefined);
+    setUserSavings([]);
   };
 
   const createSaving = async (tokenAddress: Address, amount: bigint, goal: bigint, isLocked: boolean) => {
@@ -130,7 +128,7 @@ export default function Home() {
         {account ? (
           <React.Fragment>
             <Text>Connected: {account}</Text>
-            <Button> Disconnect </Button>
+            <Button onClick={disconnect}> Disconnect </Button>
           </React.Fragment>
         ) : (
           <Button onClick={connect}>Connect Wallet</Button>
