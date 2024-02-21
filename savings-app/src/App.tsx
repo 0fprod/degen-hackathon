@@ -13,7 +13,8 @@ import { usePublicClient } from './hooks/walletPublic.hook';
 export default function Home() {
   const toast = useToast();
   const [account, setAccount] = useState<Address>();
-  const [userSavings, setUserSavings] = useState<Saving[]>();
+  const [userSavings, setUserSavings] = useState<Saving[]>([]);
+  const [totalSavings, setTotalSavings] = useState<number>(0);
   const walletClient = useWalletClient();
   const publicClient = usePublicClient();
 
@@ -32,7 +33,7 @@ export default function Home() {
     setAccount(undefined);
     toast({
       title: 'Disconnected.',
-      description: "We've created your account for you.",
+      description: "Bye! Remember to disconnect your wallet when you're done.",
       status: 'info',
       duration: 3000,
       isClosable: true,
@@ -64,7 +65,7 @@ export default function Home() {
       toast({
         title: 'Transaction failed',
         position: 'top-right',
-        description: 'Create saving failed',
+        description: (e as any).toString(),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -136,26 +137,64 @@ export default function Home() {
 
   const withdraw = async (tokenAddress: Address, amount: bigint, id: bigint) => {
     if (!account) return;
-    const { request } = await publicClient.simulateContract({
-      ...savingContract,
-      functionName: 'withdrawSaving',
-      account,
-      args: [tokenAddress, amount, id],
-    });
-    const hash = await walletClient.writeContract(request);
-    console.log('Transaction hash:', hash);
+    try {
+      const { request } = await publicClient.simulateContract({
+        ...savingContract,
+        functionName: 'withdrawSaving',
+        account,
+        args: [tokenAddress, amount, id],
+      });
+      const hash = await walletClient.writeContract(request);
+      toast({
+        title: 'Transaction sent',
+        position: 'top-right',
+        description: `Withdraw: ${amount}. TxHash: ${hash}`,
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'Transaction failed',
+        position: 'top-right',
+        description: (e as any).toString(),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const deposit = async (tokenAddress: Address, amount: bigint, id: bigint) => {
     if (!account) return;
-    const { request } = await publicClient.simulateContract({
-      ...savingContract,
-      functionName: 'addToSaving',
-      account,
-      args: [tokenAddress, amount, id],
-    });
-    const hash = await walletClient.writeContract(request);
-    console.log('Transaction hash:', hash);
+    try {
+      const { request } = await publicClient.simulateContract({
+        ...savingContract,
+        functionName: 'addToSaving',
+        account,
+        args: [tokenAddress, amount, id],
+      });
+      const hash = await walletClient.writeContract(request);
+      toast({
+        title: 'Transaction sent',
+        position: 'top-right',
+        description: `Deposit: ${amount}. TxHash: ${hash}`,
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'Transaction failed',
+        position: 'top-right',
+        description: (e as any).toString(),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   useEffect(() => {
@@ -163,7 +202,7 @@ export default function Home() {
 
     const interval = setInterval(() => {
       getUserSavings();
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [account]);
@@ -187,6 +226,11 @@ export default function Home() {
     fetchAddress();
   }, []);
 
+  useEffect(() => {
+    let total = userSavings.reduce((acc, saving) => acc + Number(saving.balance), 0);
+    setTotalSavings(total);
+  }, [userSavings]);
+
   return (
     <VStack padding={'2rem'} alignItems={'flex-start'} bg={'#0B2027'} color={'white'}>
       <Heading>Welcome to SavingsApp!</Heading>
@@ -209,7 +253,7 @@ export default function Home() {
       <Divider />
       <Heading>My Savings</Heading>
       <SimpleGrid columns={3} spacing={5}>
-        <NewSavingCard createSaving={createSaving} increaseAllowance={increaseAllowance} key={userSavings?.length} />
+        <NewSavingCard createSaving={createSaving} increaseAllowance={increaseAllowance} key={totalSavings} />
 
         {userSavings?.map((saving) => (
           <SavingCard key={saving.id.toString()} saving={saving} withdraw={withdraw} deposit={deposit} />
