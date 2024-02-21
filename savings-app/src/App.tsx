@@ -6,36 +6,70 @@ import { useEffect, useState } from 'react';
 import { savingContract } from './contracts/saving';
 import { erc20Abi } from 'viem';
 import { type Saving } from './components/saving/Saving';
-import { Box, Button, Heading, SimpleGrid, VStack, Text, Divider } from '@chakra-ui/react';
+import { Box, Button, Heading, SimpleGrid, VStack, Text, Divider, useToast } from '@chakra-ui/react';
 import { useWalletClient } from './hooks/walletClient.hook';
 import { usePublicClient } from './hooks/walletPublic.hook';
 
 export default function Home() {
+  const toast = useToast();
   const [account, setAccount] = useState<Address>();
   const [userSavings, setUserSavings] = useState<Saving[]>();
   const walletClient = useWalletClient();
   const publicClient = usePublicClient();
 
   const connect = async () => {
-    const [address] = await walletClient.requestAddresses();
-    setAccount(address);
+    walletClient.requestAddresses().then((address) => {
+      setAccount(address[0]);
+    });
+    toast.promise(walletClient.requestAddresses(), {
+      success: { title: 'Wallet connected', description: 'You are now connected to your wallet' },
+      error: { title: 'Wallet not connected', description: 'Please connect your wallet' },
+      loading: { title: 'Connecting wallet', description: 'Please wait' },
+    });
   };
 
   const disconnect = () => {
     setAccount(undefined);
+    toast({
+      title: 'Disconnected.',
+      description: "We've created your account for you.",
+      status: 'info',
+      duration: 3000,
+      isClosable: true,
+    });
     setUserSavings([]);
   };
 
   const createSaving = async (tokenAddress: Address, amount: bigint, goal: bigint, isLocked: boolean) => {
     if (!account) return;
-    const { request } = await publicClient.simulateContract({
-      ...savingContract,
-      functionName: 'createSaving',
-      account,
-      args: [tokenAddress, amount, goal, isLocked],
-    });
-    const hash = await walletClient.writeContract(request);
-    console.log('Transaction hash:', hash);
+    try {
+      const { request } = await publicClient.simulateContract({
+        ...savingContract,
+        functionName: 'createSaving',
+        account,
+        args: [tokenAddress, amount, goal, isLocked],
+      });
+
+      const hash = await walletClient.writeContract(request);
+      toast({
+        title: 'Transaction sent',
+        position: 'top-right',
+        description: `Create saving: ${amount}. TxHash: ${hash}`,
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'Transaction failed',
+        position: 'top-right',
+        description: 'Create saving failed',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const getUserSavings = async () => {
@@ -67,16 +101,35 @@ export default function Home() {
     });
 
     if (allowance < amount) {
-      const { request, result } = await publicClient.simulateContract({
-        address: tokenAddress,
-        abi: erc20Abi,
-        functionName: 'approve',
-        account,
-        args: [savingContract.address, amount],
-      });
-      if (result) {
+      try {
+        const { request } = await publicClient.simulateContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'approve',
+          account,
+          args: [savingContract.address, amount],
+        });
         const hash = await walletClient.writeContract(request);
-        console.log('Transaction hash:', hash);
+
+        // show toast
+        toast({
+          title: 'Transaction sent',
+          position: 'top-right',
+          description: `Approve: ${amount}. TxHash: ${hash}`,
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (e) {
+        console.error(e);
+        toast({
+          title: 'Transaction failed',
+          position: 'top-right',
+          description: 'Approve failed',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
       }
     }
   };
@@ -115,6 +168,25 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [account]);
 
+  useEffect(() => {
+    const fetchAddress = async () => {
+      const [address] = await walletClient.requestAddresses();
+      setAccount(address);
+    };
+
+    toast.promise(fetchAddress(), {
+      success: {
+        title: 'Wallet connected',
+        description: 'You are now connected to your wallet',
+        position: 'top-right',
+      },
+      error: { title: 'Wallet not connected', description: 'Please connect your wallet', position: 'top-right' },
+      loading: { title: 'Connecting wallet', description: 'Please wait', position: 'top-right' },
+    });
+
+    fetchAddress();
+  }, []);
+
   return (
     <VStack padding={'2rem'} alignItems={'flex-start'} bg={'#0B2027'} color={'white'}>
       <Heading>Welcome to SavingsApp!</Heading>
@@ -137,7 +209,7 @@ export default function Home() {
       <Divider />
       <Heading>My Savings</Heading>
       <SimpleGrid columns={3} spacing={5}>
-        <NewSavingCard createSaving={createSaving} increaseAllowance={increaseAllowance} />
+        <NewSavingCard createSaving={createSaving} increaseAllowance={increaseAllowance} key={userSavings?.length} />
 
         {userSavings?.map((saving) => (
           <SavingCard key={saving.id.toString()} saving={saving} withdraw={withdraw} deposit={deposit} />

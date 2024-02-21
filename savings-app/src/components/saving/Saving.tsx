@@ -15,8 +15,10 @@ import {
   Progress,
 } from '@chakra-ui/react';
 import { ethers } from 'ethers';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Address } from 'viem';
+import { useAlchemy } from '../../hooks/alchemys.hook';
+import { TokenMetadataResponse } from 'alchemy-sdk';
 
 export type Saving = {
   id: bigint;
@@ -35,8 +37,10 @@ interface SavingProps {
 
 export default function SavingCard(props: SavingProps) {
   const { tokenAddress, balance, goal, isLocked, progress, id } = props.saving;
+  const [token, setToken] = React.useState<TokenMetadataResponse>(); // token metadata
   const trimmedTokenAddress = tokenAddress.slice(0, 6) + '...' + tokenAddress.slice(-4);
   const [amount, setAmount] = React.useState<bigint>(0n);
+  const alchemySdk = useAlchemy();
 
   const handleWithdraw = () => {
     props.withdraw(tokenAddress, amount, id);
@@ -51,21 +55,29 @@ export default function SavingCard(props: SavingProps) {
     props.deposit(tokenAddress, amount, id);
   };
 
+  useEffect(() => {
+    alchemySdk.core.getTokenMetadata(tokenAddress).then((tokenMetadata) => {
+      setToken(tokenMetadata);
+    });
+  }, [alchemySdk, tokenAddress]);
+
   return (
     <Card maxW="sm" size="sm" bg={'#CFD7C7'}>
       <CardBody>
         <Image src="/images/moneybag.jpeg" borderRadius="lg" />
         <Stack mt="6" spacing="3">
-          <Heading size={'md'}>Token address: {trimmedTokenAddress}</Heading>
+          <Heading size={'md'}>
+            {token?.name} ({trimmedTokenAddress})
+          </Heading>
+          <Progress colorScheme="green" size="sm" value={progress} hasStripe />
           <Text>
             <b>Progress:</b> {progress} %
-            <Progress colorScheme="green" size="sm" value={progress} hasStripe />
           </Text>
           <Text>
-            <b>Goal:</b> {ethers.utils.formatUnits(goal)}
+            <b>Goal:</b> {ethers.utils.formatUnits(goal, token?.decimals ?? 18)} {token?.symbol}
           </Text>
           <Text>
-            <b>Current balance: </b> {ethers.utils.formatUnits(balance)}
+            <b>Current balance: </b> {ethers.utils.formatUnits(balance, token?.decimals ?? 18)}
           </Text>
           <Text>
             <b>Locked:</b> {isLocked ? 'Yes' : 'No'}
